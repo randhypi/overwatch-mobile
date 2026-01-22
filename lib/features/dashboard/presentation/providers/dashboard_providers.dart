@@ -30,8 +30,8 @@ final dashboardStreamProvider = StreamProvider.autoDispose<List<LogPair>>((ref) 
   final pairingUseCase = ref.watch(pairingUseCaseProvider);
   final filter = ref.watch(filterProvider);
   
-  // Get raw stream
-  final rawStream = repository.getLogStream();
+  // Get raw stream (List<TraceLog>) and flatten it to Stream<TraceLog>
+  final rawStream = repository.getLogStream().expand((list) => list);
   
   // Apply Pairing
   return pairingUseCase.execute(rawStream).map((list) {

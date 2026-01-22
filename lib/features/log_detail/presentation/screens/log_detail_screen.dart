@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/log_pair.dart';
-import '../../domain/entities/trace_log.dart';
+import 'package:overwatch_mobile/features/dashboard/domain/entities/log_pair.dart';
+import 'package:overwatch_mobile/features/dashboard/domain/entities/trace_log.dart';
 
 class LogDetailScreen extends StatelessWidget {
   final LogPair logPair;
