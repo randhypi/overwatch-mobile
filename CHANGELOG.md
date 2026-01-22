@@ -1,0 +1,12 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [1.0.0] - 2026-01-22
+### Added
+- **Native Security**: C++ implementation via FFI for API secret obfuscation.
+- **Network Layer**: Dio client with HMAC-SHA512 Auth, GZIP support, and SSL Pinning.
+- **Dashboard**: "The Matrix" style real-time transaction monitor (`DashboardScreen`).
+- **Parsing**: ISO 8583 Regex parser and Trace Log pairing logic.
+- **Filtering**: Local search (Trace, PAN, Amount) and Error-only toggle.
+- **UI**: Dark Theme customized for "Hacker/Console" aesthetic.

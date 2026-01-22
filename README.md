@@ -1,16 +1,55 @@
-# overwatch_mobile
+# Overwatch Mobile
 
-A new Flutter project.
+**High-Fidelity Transaction Monitor Companion for DevOps & Level 2 Support.**
+
+![Flutter](https://img.shields.io/badge/Flutter-3.7.0-blue.svg)
+![Architecture](https://img.shields.io/badge/Architecture-Clean-green.svg)
+![Status](https://img.shields.io/badge/Status-Stable-success.svg)
+
+## Overview
+Overwatch Mobile is a specialized monitoring tool designed for the "Jalanin Aja" support team. It provides real-time visibility into ISO 8583 and JSON transaction streams directly from a mobile device, eliminating the need for laptop-based log scraping.
+
+## Key Features
+-   **The Matrix View**: Real-time scrolling log feed with instant status visualization (Green/Red).
+-   **Dual-Stream Parsing**: Automatically pairs Request (ISO) and Response (JSON) logs.
+-   **Console-Grade Filtering**:
+    -   Filter by Trace Number, PAN (Masked), or Reference.
+    -   Toggle "Show Errors Only (!00)" for rapid debugging.
+-   **Secure by Design**:
+    -   API Secrets obfuscated in Native C++ layer (`libsecrets.so`).
+    -   SSL Pinning enforced for API connections.
+    -   HMAC-SHA512 Request Signing.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
+-   Flutter SDK 3.7.0+
+-   Android NDK (for C++ compilation)
+-   Java 11 or 17
 
-A few resources to get you started if this is your first Flutter project:
+### Installation
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/randhypi/overwatch-mobile.git
+    cd overwatch-mobile
+    ```
+2.  Install dependencies:
+    ```bash
+    flutter pub get
+    ```
+3.  Run the app:
+    ```bash
+    flutter run
+    ```
+    *Note: The Native C++ library will be compiled automatically via Gradle.*
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Architecture
+The project follows **Clean Architecture** with a **Feature-First** structure:
+-   `lib/core`: Shared utilities, API Client, Security.
+-   `lib/features/dashboard`: Dashboard UI, Logic, and Data Layer.
+-   `lib/features/log_detail`: Detail view logic.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Security
+To protect sensitive API keys, this project uses **Native C++ Obfuscation**.
+-   Secrets are stored in `android/app/src/main/cpp/secrets.cpp`.
+-   Accessed via Dart FFI in `lib/core/security/native_secrets.dart`.
