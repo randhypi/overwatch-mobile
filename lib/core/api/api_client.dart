@@ -8,14 +8,16 @@ final apiClientProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     // Using HTTP for IP, but usually it should be HTTPS. 
     // FSD assumes direct IP access. Ensure server supports HTTPS if pinning.
-    baseUrl: "https://103.245.122.241", 
+    // Using HTTP for IP as discovered in PoC.
+    // FSD assumes direct IP access.
+    baseUrl: "http://103.245.122.241:47023", 
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     contentType: Headers.jsonContentType,
   ));
 
   // Apply Security Logic
-  setupSslPinning(dio);
+  // setupSslPinning(dio); // Disabled: Server uses HTTP
 
   // Add Interceptors
   dio.interceptors.addAll([

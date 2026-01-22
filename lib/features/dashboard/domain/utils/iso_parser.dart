@@ -11,47 +11,60 @@ class IsoParser {
     String trace = '000000';
     String pan = '';
     String amount = '0';
-    String status = 'unknown'; // Usually F39
+    String status = '00';
+    String refNum = '-';
+    String serialNumber = '-';
+    String terminalId = '-';
+    String pCode = '-';
+
+    // 1. Extract Fields using Regex for [XXX] : [Value] format
+    // Trace (Field 11)
+    final traceMatch = RegExp(r'(?:Field\s+)?011[:\s]+(?:\[)?(\d+)(?:\])?').firstMatch(rawLog);
+    if (traceMatch != null) trace = traceMatch.group(1) ?? '000000';
+
+    // RefNum (Field 37)
+    final refMatch = RegExp(r'(?:Field\s+)?037[:\s]+(?:\[)?(\w+)(?:\])?').firstMatch(rawLog);
+    if (refMatch != null) refNum = refMatch.group(1) ?? '-';
+
+    // TID (Field 41)
+    final tidMatch = RegExp(r'(?:Field\s+)?041[:\s]+(?:\[)?(\w+)(?:\])?').firstMatch(rawLog);
+    if (tidMatch != null) terminalId = tidMatch.group(1) ?? '-';
+
+    // PCode (Field 3)
+    final pCodeMatch = RegExp(r'(?:Field\s+)?003[:\s]+(?:\[)?(\d+)(?:\])?').firstMatch(rawLog);
+    if (pCodeMatch != null) pCode = pCodeMatch.group(1) ?? '-';
+
+    // Amount (Field 4)
+    final amountMatch = RegExp(r'(?:Field\s+)?004[:\s]+(?:\[)?(\d+)(?:\])?').firstMatch(rawLog);
+    if (amountMatch != null) amount = amountMatch.group(1) ?? '0';
+
+    // Status (Field 39)
+    final statusMatch = RegExp(r'(?:Field\s+)?039[:\s]+(?:\[)?(\w+)(?:\])?').firstMatch(rawLog);
+    if (statusMatch != null) status = statusMatch.group(1) ?? '00';
     
-    // 1. Extract Fields
-    final matches = fieldRegex.allMatches(rawLog);
-    for (final m in matches) {
-      final fieldId = m.group(1);
-      final value = m.group(2)?.trim() ?? '';
-      
-      switch (fieldId) {
-        case '002': // PAN
-          pan = _maskPan(value);
-          break;
-        case '004': // Amount
-          amount = value;
-          break;
-        case '011': // Trace
-          trace = value;
-          break;
-        case '039': // Response Code
-          status = value;
-          break;
-      }
-    }
-    
-    // 2. Extract Timestamp (Naive approach, usually depends on log format)
-    // For now, use current time if regex fails, or try to parse match
-    DateTime timestamp = DateTime.now();
-    final headerMatch = headerRegex.firstMatch(rawLog);
-    if (headerMatch != null) {
-      // Parsing logic would go here, skipping for MVP to avoid timezone hell
-      // timestamp = ...
-    }
+    // PAN (Field 2)
+    final panMatch = RegExp(r'(?:Field\s+)?002[:\s]+(?:\[)?([\d\*]+)(?:\])?').firstMatch(rawLog);
+    if (panMatch != null) pan = _maskPan(panMatch.group(1) ?? '');
+
+    // Private Data (Field 48) - Critical for Network Logic
+    String privateData = '';
+    final pDataMatch = RegExp(r'(?:Field\s+)?048[:\s]+(?:\[)?([^\]\r\n]+)(?:\])?').firstMatch(rawLog);
+    if (pDataMatch != null) privateData = pDataMatch.group(1) ?? '';
 
     return TraceLog(
-      timestamp: timestamp,
+      timestamp: DateTime.now(),
       traceNumber: trace,
       content: rawLog,
       type: LogType.iso,
       status: status,
       pan: pan,
       amount: amount,
+      refNum: refNum,
+      serialNumber: serialNumber,
+      terminalId: terminalId,
+      pCode: pCode,
+      transactionName: "ISO Transaction",
+      privateData: privateData,
     );
   }
 

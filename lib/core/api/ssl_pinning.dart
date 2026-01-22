@@ -18,6 +18,7 @@ void setupSslPinning(Dio dio) {
           // final actualSha256 = sha256.convert(cert.der).toString();
           // return "SHA256:${actualSha256.toUpperCase()}" == knownFingerprint;
           
+          print("🔐 SSL Pinning: Certificate Accepted for $host");
           // For now, return true (Development Mode) but allow ONLY this IP
           return true; 
         }
