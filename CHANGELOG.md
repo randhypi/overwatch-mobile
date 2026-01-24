@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Fixed
+- Android build directory layout issue (`newBuildDir` path resolution).
+
+### Style
+- Code formatting applied to Core API, Dashboard Repositories, and Presentation layers.
+
 ## [1.0.0] - 2026-01-22
 ### Added
 - **Native Security**: C++ implementation via FFI for API secret obfuscation.
