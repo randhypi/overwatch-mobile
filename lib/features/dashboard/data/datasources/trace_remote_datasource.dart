@@ -31,10 +31,39 @@ class TraceRemoteDataSource {
   }
 
   /// 2. Trace View: Returns specific file content
-  Future<List<TraceLog>> fetchTraceView(String appName, String fileName, int lastPosition) async {
-    // Implementation for View if needed (History Feature)
-    // For now, focusing on Current
-    return [];
+  /// Returns Tuple: [List<TraceLog>, int newLastPosition]
+  Future<Map<String, dynamic>> fetchTraceView(String appName, String fileName, int lastPosition) async {
+    try {
+      final response = await _dio.post('/api/sdk/trace/view', data: {
+        "appName": appName,
+        "fileName": fileName, // Note: Param is fileName, not nodeName
+        "lastPosition": lastPosition
+      });
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data != null) {
+          final int newPos = data['lastPosition'] ?? lastPosition;
+          final String? compressed = data['logCompressed'];
+          
+          if (compressed != null && compressed.isNotEmpty) {
+            final rawContent = _decompressData(compressed);
+            final logs = _parseRawContent(rawContent);
+            return {
+              "logs": logs,
+              "lastPosition": newPos
+            };
+          } else {
+             return { "logs": <TraceLog>[], "lastPosition": newPos };
+          }
+        }
+      }
+      return { "logs": <TraceLog>[], "lastPosition": lastPosition };
+    } catch (e) {
+      print("Fetch View Error: $e");
+      // On error, keep same position
+      return { "logs": <TraceLog>[], "lastPosition": lastPosition };
+    }
   }
 
   /// 3. Trace Current: Realtime monitoring

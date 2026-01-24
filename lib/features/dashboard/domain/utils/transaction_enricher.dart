@@ -1,4 +1,3 @@
-import '../../../../core/security/native_secrets.dart';
 import '../../data/repositories/bin_repository.dart';
 import '../entities/trace_log.dart';
 
@@ -14,24 +13,21 @@ class TransactionEnricher {
       pcode: log.pCode == '-' ? null : log.pCode,
       mti: _extractMti(log.content),
       privateData: log.privateData.isEmpty ? null : log.privateData,
-      cardNum: log.pan, 
-      networkMgmtCode: null, 
+      cardNum: log.pan,
+      networkMgmtCode: null,
     );
 
     // 2. Get Bank Name
     final bank = getBankName(log.pan);
 
-    return log.copyWith(
-      transactionName: detailedType,
-      bankName: bank,
-    );
+    return log.copyWith(transactionName: detailedType, bankName: bank);
   }
 
   String getDetailedType({
     required String? pcode,
     required String? mti,
-    required String? privateData, 
-    required String? cardNum, 
+    required String? privateData,
+    required String? cardNum,
     required String? networkMgmtCode,
   }) {
     // 1. Check Network Management (Sign On / Echo)
@@ -42,7 +38,8 @@ class TransactionEnricher {
 
     // 2. Check Private Data (Withdrawal Overrides)
     if (privateData != null) {
-      if (privateData.startsWith('0210')) return 'Tarik Tunai Bank Lain'; // Off Us
+      if (privateData.startsWith('0210'))
+        return 'Tarik Tunai Bank Lain'; // Off Us
       if (privateData.startsWith('0110')) return 'Tarik Tunai Sesama'; // On Us
     }
 
@@ -50,7 +47,9 @@ class TransactionEnricher {
     if (pcode != null) {
       // 301000: Inquiry
       if (pcode.startsWith('301')) {
-        return _isOnUs(privateData) ? 'Check Saldo Bank Nobu' : 'Check Saldo Bank Lain';
+        return _isOnUs(privateData)
+            ? 'Check Saldo Bank Nobu'
+            : 'Check Saldo Bank Lain';
       }
       // 401000: Transfer
       if (pcode.startsWith('401')) {
@@ -58,7 +57,9 @@ class TransactionEnricher {
       }
       // 011000: Tarik Tunai (Fallback)
       if (pcode.startsWith('011')) {
-        return _isOnUs(privateData) ? 'Tarik Tunai Sesama' : 'Tarik Tunai Bank Lain';
+        return _isOnUs(privateData)
+            ? 'Tarik Tunai Sesama'
+            : 'Tarik Tunai Bank Lain';
       }
     }
 
@@ -71,8 +72,8 @@ class TransactionEnricher {
   }
 
   String? _extractMti(String content) {
-     final match = RegExp(r'<(\d{4})>').firstMatch(content);
-     return match?.group(1);
+    final match = RegExp(r'<(\d{4})>').firstMatch(content);
+    return match?.group(1);
   }
 
   bool _isOnUs(String? privateData) {

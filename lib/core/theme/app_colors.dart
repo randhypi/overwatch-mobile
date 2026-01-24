@@ -9,6 +9,7 @@ class AppColors {
   static const Color inputBg = Color(0xFF3A3F4B);
   static const Color primary = Color(0xFF61AFEF);
   static const Color success = Color(0xFF98C379);
+  static const Color warning = Color(0xFFE5C07B); // Amber
   static const Color error = Color(0xFFE06C75);
   static const Color divider = Color(0xFF5C6370);
 }

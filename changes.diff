@@ -1,0 +1,396 @@
+﻿diff --git a/android/build.gradle.kts b/android/build.gradle.kts
+index 500ca00..89176ef 100644
+--- a/android/build.gradle.kts
++++ b/android/build.gradle.kts
+@@ -5,7 +5,7 @@ allprojects {
+     }
+ }
+ 
+-val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../build").get()
++val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
+ rootProject.layout.buildDirectory.value(newBuildDir)
+ 
+ subprojects {
+diff --git a/lib/core/api/api_client.dart b/lib/core/api/api_client.dart
+index 359ea44..fc1ccbf 100644
+--- a/lib/core/api/api_client.dart
++++ b/lib/core/api/api_client.dart
+@@ -2,19 +2,20 @@ import 'package:dio/dio.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:dio_smart_retry/dio_smart_retry.dart';
+ import 'auth_interceptor.dart';
+-import 'ssl_pinning.dart';
+ 
+ final apiClientProvider = Provider<Dio>((ref) {
+-  final dio = Dio(BaseOptions(
+-    // Using HTTP for IP, but usually it should be HTTPS. 
+-    // FSD assumes direct IP access. Ensure server supports HTTPS if pinning.
+-    // Using HTTP for IP as discovered in PoC.
+-    // FSD assumes direct IP access.
+-    baseUrl: "http://103.245.122.241:47023", 
+-    connectTimeout: const Duration(seconds: 30),
+-    receiveTimeout: const Duration(seconds: 30),
+-    contentType: Headers.jsonContentType,
+-  ));
++  final dio = Dio(
++    BaseOptions(
++      // Using HTTP for IP, but usually it should be HTTPS.
++      // FSD assumes direct IP access. Ensure server supports HTTPS if pinning.
++      // Using HTTP for IP as discovered in PoC.
++      // FSD assumes direct IP access.
++      baseUrl: "http://103.245.122.241:47023",
++      connectTimeout: const Duration(seconds: 30),
++      receiveTimeout: const Duration(seconds: 30),
++      contentType: Headers.jsonContentType,
++    ),
++  );
+ 
+   // Apply Security Logic
+   // setupSslPinning(dio); // Disabled: Server uses HTTP
+diff --git a/lib/features/dashboard/data/repositories/trace_repository_impl.dart b/lib/features/dashboard/data/repositories/trace_repository_impl.dart
+index e3720ca..d587013 100644
+--- a/lib/features/dashboard/data/repositories/trace_repository_impl.dart
++++ b/lib/features/dashboard/data/repositories/trace_repository_impl.dart
+@@ -1,4 +1,3 @@
+-import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import '../../domain/entities/trace_log.dart';
+ import '../../domain/repositories/trace_repository.dart';
+ import '../datasources/trace_remote_datasource.dart';
+@@ -7,8 +6,9 @@ import '../../domain/entities/trace_context.dart';
+ 
+ class TraceRepositoryImpl implements TraceRepository {
+   final TraceRemoteDataSource _dataSource;
+-  final Map<String, int> _lastPositions = {}; // Track pos per nodeName matches key
+-  
++  final Map<String, int> _lastPositions =
++      {}; // Track pos per nodeName matches key
++
+   TraceRepositoryImpl(this._dataSource);
+ 
+   @override
+@@ -31,12 +31,16 @@ class TraceRepositoryImpl implements TraceRepository {
+   Future<List<TraceLog>> _fetchSingle(TraceConfig config) async {
+     final key = config.nodeName;
+     final lastPos = _lastPositions[key] ?? 0;
+-    
+-    final result = await _dataSource.fetchTraceCurrent(config.appName, config.nodeName, lastPos);
+-    
++
++    final result = await _dataSource.fetchTraceCurrent(
++      config.appName,
++      config.nodeName,
++      lastPos,
++    );
++
+     final logs = result['logs'] as List<TraceLog>;
+     final newPos = result['lastPosition'] as int;
+-    
++
+     _lastPositions[key] = newPos;
+     return logs;
+   }
+diff --git a/lib/features/dashboard/domain/utils/transaction_enricher.dart b/lib/features/dashboard/domain/utils/transaction_enricher.dart
+index dac56aa..62c1651 100644
+--- a/lib/features/dashboard/domain/utils/transaction_enricher.dart
++++ b/lib/features/dashboard/domain/utils/transaction_enricher.dart
+@@ -1,4 +1,3 @@
+-import '../../../../core/security/native_secrets.dart';
+ import '../../data/repositories/bin_repository.dart';
+ import '../entities/trace_log.dart';
+ 
+@@ -14,24 +13,21 @@ class TransactionEnricher {
+       pcode: log.pCode == '-' ? null : log.pCode,
+       mti: _extractMti(log.content),
+       privateData: log.privateData.isEmpty ? null : log.privateData,
+-      cardNum: log.pan, 
+-      networkMgmtCode: null, 
++      cardNum: log.pan,
++      networkMgmtCode: null,
+     );
+ 
+     // 2. Get Bank Name
+     final bank = getBankName(log.pan);
+ 
+-    return log.copyWith(
+-      transactionName: detailedType,
+-      bankName: bank,
+-    );
++    return log.copyWith(transactionName: detailedType, bankName: bank);
+   }
+ 
+   String getDetailedType({
+     required String? pcode,
+     required String? mti,
+-    required String? privateData, 
+-    required String? cardNum, 
++    required String? privateData,
++    required String? cardNum,
+     required String? networkMgmtCode,
+   }) {
+     // 1. Check Network Management (Sign On / Echo)
+@@ -42,7 +38,8 @@ class TransactionEnricher {
+ 
+     // 2. Check Private Data (Withdrawal Overrides)
+     if (privateData != null) {
+-      if (privateData.startsWith('0210')) return 'Tarik Tunai Bank Lain'; // Off Us
++      if (privateData.startsWith('0210'))
++        return 'Tarik Tunai Bank Lain'; // Off Us
+       if (privateData.startsWith('0110')) return 'Tarik Tunai Sesama'; // On Us
+     }
+ 
+@@ -50,7 +47,9 @@ class TransactionEnricher {
+     if (pcode != null) {
+       // 301000: Inquiry
+       if (pcode.startsWith('301')) {
+-        return _isOnUs(privateData) ? 'Check Saldo Bank Nobu' : 'Check Saldo Bank Lain';
++        return _isOnUs(privateData)
++            ? 'Check Saldo Bank Nobu'
++            : 'Check Saldo Bank Lain';
+       }
+       // 401000: Transfer
+       if (pcode.startsWith('401')) {
+@@ -58,7 +57,9 @@ class TransactionEnricher {
+       }
+       // 011000: Tarik Tunai (Fallback)
+       if (pcode.startsWith('011')) {
+-        return _isOnUs(privateData) ? 'Tarik Tunai Sesama' : 'Tarik Tunai Bank Lain';
++        return _isOnUs(privateData)
++            ? 'Tarik Tunai Sesama'
++            : 'Tarik Tunai Bank Lain';
+       }
+     }
+ 
+@@ -71,8 +72,8 @@ class TransactionEnricher {
+   }
+ 
+   String? _extractMti(String content) {
+-     final match = RegExp(r'<(\d{4})>').firstMatch(content);
+-     return match?.group(1);
++    final match = RegExp(r'<(\d{4})>').firstMatch(content);
++    return match?.group(1);
+   }
+ 
+   bool _isOnUs(String? privateData) {
+diff --git a/lib/features/dashboard/presentation/providers/dashboard_providers.dart b/lib/features/dashboard/presentation/providers/dashboard_providers.dart
+index 35c5c52..c5bde86 100644
+--- a/lib/features/dashboard/presentation/providers/dashboard_providers.dart
++++ b/lib/features/dashboard/presentation/providers/dashboard_providers.dart
+@@ -1,9 +1,7 @@
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import '../../../../core/api/api_client.dart';
+-import '../../domain/entities/log_pair.dart';
+ import '../../data/datasources/trace_remote_datasource.dart';
+ import '../../data/repositories/trace_repository_impl.dart';
+-import '../../data/repositories/history_repository.dart';
+ import '../../domain/repositories/trace_repository.dart';
+ import '../../domain/usecases/pairing_usecase.dart';
+ import '../../domain/usecases/grouping_usecase.dart';
+diff --git a/lib/features/dashboard/presentation/screens/dashboard_screen.dart b/lib/features/dashboard/presentation/screens/dashboard_screen.dart
+index bfd89a8..a0d00ae 100644
+--- a/lib/features/dashboard/presentation/screens/dashboard_screen.dart
++++ b/lib/features/dashboard/presentation/screens/dashboard_screen.dart
+@@ -1,8 +1,7 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import '../../../../core/theme/app_colors.dart';
+-import '../../domain/entities/trace_context.dart'; 
+-import '../../domain/entities/transaction_group.dart';
++import '../../domain/entities/trace_context.dart';
+ import '../providers/dashboard_providers.dart';
+ import '../providers/history_provider.dart';
+ import '../widgets/filter_drawer.dart';
+@@ -24,7 +23,10 @@ class DashboardScreen extends ConsumerWidget {
+       backgroundColor: const Color(0xFF1E222A), // Dark Background
+       appBar: AppBar(
+         backgroundColor: const Color(0xFF282C34),
+-        title: const Text("Log Analysis Dashboard", style: TextStyle(fontWeight: FontWeight.bold)),
++        title: const Text(
++          "Log Analysis Dashboard",
++          style: TextStyle(fontWeight: FontWeight.bold),
++        ),
+         bottom: PreferredSize(
+           preferredSize: const Size.fromHeight(60),
+           child: _buildControls(ref, currentConfig),
+@@ -36,51 +38,69 @@ class DashboardScreen extends ConsumerWidget {
+             tooltip: 'Refresh Logs',
+           ),
+           Builder(
+-            builder: (ctx) => IconButton(
+-              icon: const Icon(Icons.filter_list),
+-              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+-            ),
+-          )
++            builder:
++                (ctx) => IconButton(
++                  icon: const Icon(Icons.filter_list),
++                  onPressed: () => Scaffold.of(ctx).openEndDrawer(),
++                ),
++          ),
+         ],
+       ),
+       endDrawer: const FilterDrawer(),
+       body: Container(
+         decoration: BoxDecoration(
+-           border: isHistoryMode ? Border.all(color: AppColors.warning, width: 2) : null
++          border:
++              isHistoryMode
++                  ? Border.all(color: AppColors.warning, width: 2)
++                  : null,
+         ),
+         child: Column(
+           children: [
+-             // 2. Stats Header
+-            _buildStatsHeader(streamAsync.valueOrNull?.length ?? 0, isHistoryMode),
+-            
++            // 2. Stats Header
++            _buildStatsHeader(
++              streamAsync.valueOrNull?.length ?? 0,
++              isHistoryMode,
++            ),
++
+             // 3. Log List
+             Expanded(
+               child: streamAsync.when(
+                 data: (groups) {
+                   if (groups.isEmpty) {
+                     return const Center(
+-                      child: Text("No transactions found.", style: TextStyle(color: AppColors.secondaryText)),
++                      child: Text(
++                        "No transactions found.",
++                        style: TextStyle(color: AppColors.secondaryText),
++                      ),
+                     );
+                   }
+                   return ListView.builder(
+                     padding: const EdgeInsets.all(8),
+                     itemCount: groups.length,
+-                    itemBuilder: (context, index) => TransactionGroupCard(
+-                        group: groups[index],
+-                        onTap: () {
++                    itemBuilder:
++                        (context, index) => TransactionGroupCard(
++                          group: groups[index],
++                          onTap: () {
+                             showModalBottomSheet(
+-                                context: context,
+-                                isScrollControlled: true,
+-                                backgroundColor: Colors.transparent,
+-                                builder: (context) => TransactionDetailSheet(group: groups[index])
++                              context: context,
++                              isScrollControlled: true,
++                              backgroundColor: Colors.transparent,
++                              builder:
++                                  (context) => TransactionDetailSheet(
++                                    group: groups[index],
++                                  ),
+                             );
+-                        },
+-                    ),
++                          },
++                        ),
+                   );
+                 },
+-                error: (err, stack) => Center(
+-                  child: Text("Error: $err", style: const TextStyle(color: AppColors.error)),
+-                ),
++                error:
++                    (err, stack) => Center(
++                      child: Text(
++                        "Error: $err",
++                        style: const TextStyle(color: AppColors.error),
++                      ),
++                    ),
+                 loading: () => const Center(child: CircularProgressIndicator()),
+               ),
+             ),
+@@ -109,17 +129,19 @@ class DashboardScreen extends ConsumerWidget {
+                 value: currentConfig,
+                 dropdownColor: const Color(0xFF323842),
+                 style: const TextStyle(color: Colors.white, fontSize: 13),
+-                icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+-                items: [
+-                  TraceConfig.all,
+-                  TraceConfig.nobu,
+-                  TraceConfig.edc,
+-                ].map((cfg) {
+-                  return DropdownMenuItem(
+-                    value: cfg,
+-                    child: Text(cfg.label),
+-                  );
+-                }).toList(),
++                icon: const Icon(
++                  Icons.arrow_drop_down,
++                  color: AppColors.primary,
++                ),
++                items:
++                    [TraceConfig.all, TraceConfig.nobu, TraceConfig.edc].map((
++                      cfg,
++                    ) {
++                      return DropdownMenuItem(
++                        value: cfg,
++                        child: Text(cfg.label),
++                      );
++                    }).toList(),
+                 onChanged: (newVal) {
+                   if (newVal != null) {
+                     ref.read(traceConfigProvider.notifier).state = newVal;
+@@ -128,14 +150,14 @@ class DashboardScreen extends ConsumerWidget {
+               ),
+             ),
+           ),
+-          
++
+           const Spacer(),
+-          
++
+           // History / Calendar Controls
+           const HistoryControls(),
+-          
++
+           const Spacer(),
+-          
++
+           ElevatedButton.icon(
+             style: ElevatedButton.styleFrom(
+               backgroundColor: const Color(0xFFE06C75),
+@@ -144,8 +166,8 @@ class DashboardScreen extends ConsumerWidget {
+             ),
+             icon: const Icon(Icons.delete_sweep, size: 16),
+             label: const Text("Clear", style: TextStyle(fontSize: 12)),
+-            onPressed: () { 
+-               ref.invalidate(dashboardStreamProvider);
++            onPressed: () {
++              ref.invalidate(dashboardStreamProvider);
+             },
+           ),
+         ],
+@@ -160,14 +182,23 @@ class DashboardScreen extends ConsumerWidget {
+       color: Colors.black,
+       child: Row(
+         children: [
+-          Text(isHistory ? "ARCHIVE MODE" : "SYSTEM HEALTH CHECK", 
+-              style: TextStyle(
+-                  color: isHistory ? AppColors.warning : AppColors.secondaryText, 
+-                  fontSize: 10, fontWeight: FontWeight.bold
+-              )
++          Text(
++            isHistory ? "ARCHIVE MODE" : "SYSTEM HEALTH CHECK",
++            style: TextStyle(
++              color: isHistory ? AppColors.warning : AppColors.secondaryText,
++              fontSize: 10,
++              fontWeight: FontWeight.bold,
++            ),
+           ),
+           const SizedBox(width: 16),
+-          Text("Total Transactions: $total", style: const TextStyle(color: Colors.white, fontSize: 10, fontFamily: 'monospace')),
++          Text(
++            "Total Transactions: $total",
++            style: const TextStyle(
++              color: Colors.white,
++              fontSize: 10,
++              fontFamily: 'monospace',
++            ),
++          ),
+         ],
+       ),
+     );
