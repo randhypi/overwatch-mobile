@@ -20,7 +20,7 @@ Fetch list of available log files.
 
 #### [POST] `/api/sdk/trace/view`
 Fetch historical log content.
-- **Payload**: `{ "appName": "API Nobu", "fileName": "trace_20230101.log", "lastPosition": 0 }`
+- **Payload**: `{ "appName": "API Nobu", "fileName": "Nobu_20260101_08.log", "lastPosition": 0 }`
 - **Response**: GZIP Base64 `logCompressed`, new `lastPosition`.
 
 #### [POST] `/api/sdk/trace/current`

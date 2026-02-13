@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.1.0] - 2026-02-13
+
+### Added
+- **Adaptive UI**: Implemented Master-Detail layout for Tablet support with `NavigationRail`.
+- **Responsive Utility**: Added standard breakpoint detection and context extensions.
+- **Unit Testing**: Suite for `PairingUseCase` (ISO & JSON matching logic).
+
+### Changed
+- **Architecture (SRP)**: Extracted log parsing and decompression logic to a dedicated `LogParser` (Domain layer).
+- **Architecture (SOC)**: Refactored `DashboardScreen` into modular functional widgets.
+
 ### Fixed
 - Android build directory layout issue (`newBuildDir` path resolution).
 

@@ -33,6 +33,11 @@ final traceConfigProvider = StateProvider<TraceConfig>(
   (ref) => TraceConfig.all,
 ); // Default: All
 
+/// State for the currently selected transaction in Master-Detail mode
+final selectedTransactionGroupProvider = StateProvider<TransactionGroup?>(
+  (ref) => null,
+);
+
 final dashboardStreamProvider =
     StreamProvider.autoDispose<List<TransactionGroup>>((ref) {
       final isHistoryMode = ref.watch(historyModeProvider);

@@ -11,6 +11,7 @@ Overwatch Mobile is a specialized monitoring tool designed for the "Jalanin Aja"
 
 ## Key Features
 -   **The Matrix View**: Real-time scrolling log feed with instant status visualization (Green/Red).
+-   **Adaptive Tablet Support**: Expert-grade Master-Detail layout for tablets with Navigation Rail for efficient monitoring on larger screens.
 -   **Dual-Stream Parsing**: Automatically pairs Request (ISO) and Response (JSON) logs.
 -   **Console-Grade Filtering**:
     -   Filter by Trace Number, PAN (Masked), or Reference.
@@ -45,8 +46,8 @@ Overwatch Mobile is a specialized monitoring tool designed for the "Jalanin Aja"
 
 ## Architecture
 The project follows **Clean Architecture** with a **Feature-First** structure:
--   `lib/core`: Shared utilities, API Client, Security.
--   `lib/features/dashboard`: Dashboard UI, Logic, and Data Layer.
+-   `lib/core`: Shared utilities, API Client, Security (FFI).
+-   `lib/features/dashboard`: Dashboard UI (Modular SOC Widgets), Log Logic (LogParser/Pairing), and Data Layer.
 -   `lib/features/log_detail`: Detail view logic.
 
 ## Security
