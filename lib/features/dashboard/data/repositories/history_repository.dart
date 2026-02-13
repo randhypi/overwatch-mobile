@@ -17,16 +17,16 @@ class HistoryRepository {
 
     // Loop Hours 00 to 23
     for (int i = 0; i < 24; i++) {
-        // Filename Format: {Node}_{YYYYMMDD}_{HH}.log
-        // Example: EDC Nobu_20251224_08.log
-        final hourStr = i.toString().padLeft(2, '0');
-        final fileName = "${nodeName}_${dateStr}_$hourStr.log";
+      // Filename Format: {Node}_{YYYYMMDD}_{HH}.log
+      // Example: EDC Nobu_20251224_08.log
+      final hourStr = i.toString().padLeft(2, '0');
+      final fileName = "${nodeName}_${dateStr}_$hourStr.log";
 
-        // Fetch logs for this file (with chunking)
-        final fileLogs = await _fetchFullFile(appName, fileName);
-        if (fileLogs.isNotEmpty) {
-            allLogs.addAll(fileLogs);
-        }
+      // Fetch logs for this file (with chunking)
+      final fileLogs = await _fetchFullFile(appName, fileName);
+      if (fileLogs.isNotEmpty) {
+        allLogs.addAll(fileLogs);
+      }
     }
 
     // Sort Descending (Newest First)
@@ -43,28 +43,33 @@ class HistoryRepository {
 
     // Infinite Loop Reader
     while (hasMore) {
-        final result = await _dataSource.fetchTraceView(appName, fileName, lastPosition);
-        final List<TraceLog> resultLogs = result['logs'] ?? [];
-        final int newPosition = result['lastPosition'] ?? lastPosition;
+      final result = await _dataSource.fetchTraceView(
+        appName,
+        fileName,
+        lastPosition,
+      );
+      final List<TraceLog> resultLogs =
+          (result['logs'] as List<TraceLog>?) ?? <TraceLog>[];
+      final int newPosition = result['lastPosition'] ?? lastPosition;
 
-        // Append Logs
-        if (resultLogs.isNotEmpty) {
-            fileLogs.addAll(resultLogs);
-        }
+      // Append Logs
+      if (resultLogs.isNotEmpty) {
+        fileLogs.addAll(resultLogs);
+      }
 
-        // Break Condition: EOF
-        // If position didn't change, we reached end of file.
-        // Or if we got no logs (redundant check but safe).
-        if (newPosition == lastPosition) {
-            hasMore = false; 
-        } else {
-            // Update position for next chunk
-            lastPosition = newPosition;
-        }
+      // Break Condition: EOF
+      // If position didn't change, we reached end of file.
+      // Or if we got no logs (redundant check but safe).
+      if (newPosition == lastPosition) {
+        hasMore = false;
+      } else {
+        // Update position for next chunk
+        lastPosition = newPosition;
+      }
 
-        // Safety break for stuck loops?
-        // If server returns newPosition > lastPosition but EMPTY logs over and over? 
-        // We trust newPosition only advances if data exists (byte length).
+      // Safety break for stuck loops?
+      // If server returns newPosition > lastPosition but EMPTY logs over and over?
+      // We trust newPosition only advances if data exists (byte length).
     }
 
     return fileLogs;

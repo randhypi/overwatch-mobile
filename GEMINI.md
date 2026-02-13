@@ -57,6 +57,7 @@ lib/
 
 
 ### A. API Integration
+*Source of Truth: [API_SPEC_TRACE.md](file:///r:/Project/Overwatch/Mobile/overwatch_mobile/doc/API_SPEC_TRACE.md)*
 
 *   **Auth**: HMAC-SHA512 Signature (`x-signature`).
     *   Format: `path:client_id:timestamp:json_body`

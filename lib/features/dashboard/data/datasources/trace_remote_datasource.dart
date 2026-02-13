@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../domain/entities/trace_log.dart';
 import '../../domain/utils/log_parser.dart';
 
 class TraceRemoteDataSource {
@@ -54,14 +55,14 @@ class TraceRemoteDataSource {
             final logs = LogParser.parseRawContent(rawContent);
             return {"logs": logs, "lastPosition": newPos};
           } else {
-            return {"logs": [], "lastPosition": newPos};
+            return {"logs": <TraceLog>[], "lastPosition": newPos};
           }
         }
       }
-      return {"logs": [], "lastPosition": lastPosition};
+      return {"logs": <TraceLog>[], "lastPosition": lastPosition};
     } catch (e) {
       print("Fetch View Error: $e");
-      return {"logs": [], "lastPosition": lastPosition};
+      return {"logs": <TraceLog>[], "lastPosition": lastPosition};
     }
   }
 
@@ -92,14 +93,14 @@ class TraceRemoteDataSource {
             final logs = LogParser.parseRawContent(rawContent);
             return {"logs": logs, "lastPosition": newPos};
           } else {
-            return {"logs": [], "lastPosition": newPos};
+            return {"logs": <TraceLog>[], "lastPosition": newPos};
           }
         }
       }
-      return {"logs": [], "lastPosition": lastPosition};
+      return {"logs": <TraceLog>[], "lastPosition": lastPosition};
     } catch (e) {
       print("Fetch Current Error: $e");
-      return {"logs": [], "lastPosition": lastPosition};
+      return {"logs": <TraceLog>[], "lastPosition": lastPosition};
     }
   }
 }
